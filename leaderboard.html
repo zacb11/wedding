@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Leaderboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="page">
+
+  <div class="page-header">
+    <a href="home.html" class="back-btn">&#8592; Back</a>
+    <h1>Leaderboard</h1>
+    <p class="subtitle">Who knows us best?</p>
+  </div>
+
+  <div class="content">
+
+    <!-- Loading state -->
+    <div id="loadingState" style="text-align:center; padding: 48px 0;">
+      <div class="spinner" style="border-top-color: var(--black); border-color: var(--light-gray); border-top-color: var(--black);"></div>
+      <p style="color:var(--gray); font-size:0.85rem; margin-top:16px;">Loading leaderboard...</p>
+    </div>
+
+    <!-- Empty state -->
+    <div id="emptyState" class="hidden" style="text-align:center; padding: 48px 0;">
+      <p style="font-family:'Cormorant Garamond',serif; font-size:1.5rem; margin-bottom:8px;">No scores yet!</p>
+      <p style="color:var(--gray); font-size:0.88rem;">Be the first to take the quiz.</p>
+      <a href="quiz.html" class="btn btn-gold mt-24" style="display:block;">Take the Quiz</a>
+    </div>
+
+    <!-- Leaderboard -->
+    <div id="leaderboardContainer" class="hidden">
+
+      <!-- Current household highlight -->
+      <div id="myRankCard" class="card hidden" style="margin-bottom:24px; border-color:var(--gold); border-width:1.5px; text-align:center;">
+        <p style="font-size:0.7rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--gold); margin-bottom:6px;">Your Household</p>
+        <p style="font-family:'Cormorant Garamond',serif; font-size:1.2rem;" id="myHouseholdName"></p>
+        <p style="font-size:0.85rem; color:var(--gray);" id="myRankText"></p>
+      </div>
+
+      <div class="divider"><span>&#10038;</span></div>
+
+      <!-- Full leaderboard list -->
+      <div class="card" style="padding:0; overflow:hidden;">
+        <div id="leaderboardList"></div>
+      </div>
+
+      <p style="text-align:center; font-size:0.75rem; color:var(--gray); margin-top:16px;">
+        Updated in real time as guests complete the quiz
+      </p>
+
+    </div>
+
+  </div>
+</div>
+
+<script>
+  if (!sessionStorage.getItem("householdId")) {
+    window.location.href = "index.html";
+  }
+
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwSxqyTvI2zFYyta8rZTvzchQx0I6oRDtbtVnr-eSIq3Zww2j1f8R4yg1Ipj3TCwwrTkCQ/exec";
+
+  const householdId = sessionStorage.getItem("householdId");
+  const displayName = sessionStorage.getItem("displayName");
+
+  async function loadLeaderboard() {
+    try {
+      const res = await fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({ action: "getLeaderboard" })
+      });
+      const data = await res.json();
+
+      document.getElementById("loadingState").classList.add("hidden");
+
+      if (!data.success || !data.leaderboard || data.leaderboard.length === 0) {
+        document.getElementById("emptyState").classList.remove("hidden");
+        return;
+      }
+
+      renderLeaderboard(data.leaderboard);
+
+    } catch (err) {
+      document.getElementById("loadingState").classList.add("hidden");
+      document.getElementById("emptyState").classList.remove("hidden");
+    }
+  }
+
+  function renderLeaderboard(leaderboard) {
+    document.getElementById("leaderboardContainer").classList.remove("hidden");
+
+    const list = document.getElementById("leaderboardList");
+    list.innerHTML = "";
+
+    let myRank = -1;
+    let myEntry = null;
+
+    leaderboard.forEach((entry, i) => {
+      const rank = i + 1;
+      const rankClass = rank === 1 ? "top-1" : rank === 2 ? "top-2" : rank === 3 ? "top-3" : "";
+      const rankSymbol = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : rank;
+
+      const item = document.createElement("div");
+      item.className = `leaderboard-item ${rankClass}`;
+
+      // Highlight current household
+      if (entry.displayName === displayName) {
+        myRank = rank;
+        myEntry = entry;
+        item.style.background = "#fffdf5";
+        item.style.borderLeft = "3px solid var(--gold)";
+      }
+
+      item.innerHTML = `
+        <div class="leaderboard-rank">${rankSymbol}</div>
+        <div class="leaderboard-name">${entry.displayName}</div>
+        <div class="leaderboard-score">${entry.score} / 20</div>
+      `;
+      list.appendChild(item);
+    });
+
+    // Show my rank card
+    if (myRank > -1) {
+      document.getElementById("myRankCard").classList.remove("hidden");
+      document.getElementById("myHouseholdName").textContent = displayName;
+      document.getElementById("myRankText").textContent =
+        `Ranked #${myRank} of ${leaderboard.length} · ${myEntry.score}/20`;
+    }
+  }
+
+  loadLeaderboard();
+</script>
+
+</body>
+</html>

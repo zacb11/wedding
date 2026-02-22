@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Registry</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="page">
+
+  <div class="page-header">
+    <a href="home.html" class="back-btn">&#8592; Back</a>
+    <h1>Registry</h1>
+    <p class="subtitle">Your presence is our greatest gift</p>
+  </div>
+
+  <div class="content">
+
+    <p style="font-size:0.92rem; color:var(--gray); line-height:1.8; margin-bottom:28px;">
+      We are so grateful you'll be celebrating with us. If you'd like to give a gift, we've registered at the following:
+    </p>
+
+    <!-- Registry links - add/remove as needed -->
+    <a href="#" class="registry-link">
+      <span class="registry-link-name">Zola</span>
+      <span class="registry-link-arrow">&#8599;</span>
+    </a>
+
+    <a href="#" class="registry-link">
+      <span class="registry-link-name">Amazon</span>
+      <span class="registry-link-arrow">&#8599;</span>
+    </a>
+
+    <!-- Add more registry links here as needed -->
+
+    <div class="divider" style="margin-top:32px;"><span>&#10038;</span></div>
+
+    <p style="font-size:0.85rem; color:var(--gray); text-align:center; line-height:1.8;">
+      A card or kind word means just as much to us.<br/>Thank you for being part of our day.
+    </p>
+
+  </div>
+</div>
+
+<script>
+  if (!sessionStorage.getItem("householdId")) {
+    window.location.href = "index.html";
+  }
+</script>
+
+</body>
+</html>

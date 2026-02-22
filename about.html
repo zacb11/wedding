@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About Us</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="page">
+
+  <div class="page-header">
+    <a href="home.html" class="back-btn">&#8592; Back</a>
+    <h1>About Us</h1>
+    <p class="subtitle">[Bride] &amp; [Groom]</p>
+  </div>
+
+  <div class="content">
+
+    <!-- Couple Photo -->
+    <img
+      src="couple-about.jpg"
+      alt="[Bride] and [Groom]"
+      class="about-photo"
+      onerror="this.style.display='none'"
+    />
+
+    <!-- How We Met -->
+    <div class="about-section">
+      <h3>How We Met</h3>
+      <p>
+        [Tell the story of how you met. Where was it? What was the first impression?
+        Keep it personal and fun — guests will love reading this.]
+      </p>
+    </div>
+
+    <div class="divider"><span>&#10038;</span></div>
+
+    <!-- Our Story -->
+    <div class="about-section">
+      <h3>Our Story</h3>
+      <p>
+        [Share a bit about your journey as a couple — highlights, milestones,
+        funny moments, adventures. This is your chance to let guests get to
+        know you both a little better.]
+      </p>
+    </div>
+
+    <div class="divider"><span>&#10038;</span></div>
+
+    <!-- The Proposal -->
+    <div class="about-section">
+      <h3>The Proposal</h3>
+      <p>
+        [Describe how and where the proposal happened. Was it a surprise?
+        What did you say? This is usually the fan favorite section.]
+      </p>
+    </div>
+
+    <div class="divider"><span>&#10038;</span></div>
+
+    <!-- Quote or closing note -->
+    <div style="text-align:center; padding: 8px 0 16px;">
+      <p style="font-family:'Cormorant Garamond',serif; font-size:1.4rem; font-style:italic; color:var(--gray); line-height:1.6;">
+        &ldquo;[A favorite quote or line that means something to the two of you]&rdquo;
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  if (!sessionStorage.getItem("householdId")) {
+    window.location.href = "index.html";
+  }
+</script>
+
+</body>
+</html>

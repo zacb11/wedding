@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Our Wedding</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="page">
+
+  <!-- Hero with photo and greeting overlay -->
+  <div class="hero">
+    <img src="couple.jpg" alt="Couple photo" id="heroPhoto" onerror="this.style.display='none'" />
+    <div class="hero-overlay">
+      <span class="hero-greeting" id="greetingText">Hi there!</span>
+      <span class="hero-title">Welcome to the wedding of<br/><strong style="font-weight:400;">[Bride] &amp; [Groom]</strong></span>
+      <span class="hero-date">[Date Placeholder] &nbsp;·&nbsp; [Venue Placeholder]</span>
+    </div>
+  </div>
+
+  <!-- Navigation Buttons -->
+  <div class="nav-buttons">
+    <a href="rsvp.html" class="btn btn-primary" id="rsvpBtn">RSVP</a>
+    <a href="registry.html" class="btn btn-outline">Registry</a>
+    <a href="info.html" class="btn btn-outline">Wedding Info</a>
+    <a href="about.html" class="btn btn-outline">About Us</a>
+    <a href="quiz.html" class="btn btn-gold" id="quizBtn">Take the Quiz</a>
+  </div>
+
+  <!-- Footer -->
+  <div style="text-align:center; padding: 0 24px 32px; color: var(--gray);">
+    <p style="font-family:'Cormorant Garamond',serif; font-size:0.85rem; letter-spacing:0.05em;">
+      [Bride] &amp; [Groom] &nbsp;&#10038;&nbsp; [Year]
+    </p>
+  </div>
+
+</div>
+
+<script>
+  // Redirect to login if no session
+  if (!sessionStorage.getItem("householdId")) {
+    window.location.href = "index.html";
+  }
+
+  const greeting = sessionStorage.getItem("greeting") || "there";
+  const quizTaken = sessionStorage.getItem("quizTaken") === "true";
+
+  // Set greeting
+  document.getElementById("greetingText").textContent = `Hi ${greeting}!`;
+
+  // Update quiz button if already taken
+  if (quizTaken) {
+    const quizBtn = document.getElementById("quizBtn");
+    quizBtn.textContent = "View Leaderboard";
+    quizBtn.href = "leaderboard.html";
+  }
+
+  // Highlight RSVP button if not yet RSVPed
+  const members = JSON.parse(sessionStorage.getItem("members") || "[]");
+  const hasRsvped = members.some(m => m.rsvpStatus !== "Pending");
+  if (hasRsvped) {
+    const rsvpBtn = document.getElementById("rsvpBtn");
+    rsvpBtn.textContent = "Update RSVP";
+    rsvpBtn.classList.replace("btn-primary", "btn-outline");
+  }
+</script>
+
+</body>
+</html>

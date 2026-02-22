@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>You're Invited</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .login-page { gap: 0; }
+    .ornament {
+      color: var(--gold);
+      font-size: 1.4rem;
+      margin: 0 10px;
+      opacity: 0.7;
+    }
+    .login-names {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-page">
+
+  <!-- Logo / Title -->
+  <div style="margin-bottom: 48px; text-align: center;">
+    <div class="login-names">
+      <p class="login-logo">[Bride]</p>
+      <span class="ornament">&#10038;</span>
+      <p class="login-logo">[Groom]</p>
+    </div>
+    <p class="login-tagline">We're getting married &nbsp;&mdash;&nbsp; [Date Placeholder]</p>
+  </div>
+
+  <!-- Login Box -->
+  <div class="login-box" id="loginBox">
+    <div class="input-wrap">
+      <label for="nameInput" style="color: rgba(255,255,255,0.4); text-align: center; display: block;">Enter your name to continue</label>
+      <input
+        type="text"
+        id="nameInput"
+        placeholder="Your name"
+        autocomplete="off"
+        autocorrect="off"
+        spellcheck="false"
+      />
+    </div>
+    <button class="btn btn-gold" id="enterBtn" onclick="handleLookup()">Continue</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+
+  <!-- Disambiguation (multiple households with same name) -->
+  <div class="disambiguation" id="disambig">
+    <p>We found more than one guest with that name. Please select your household:</p>
+    <div id="householdOptions"></div>
+    <button class="btn btn-ghost" onclick="resetLogin()" style="color: rgba(255,255,255,0.4); margin-top: 8px;">Go back</button>
+  </div>
+
+  <!-- Loading state -->
+  <div id="loadingSpinner" class="hidden" style="margin-top: 24px;">
+    <div class="spinner"></div>
+  </div>
+
+</div>
+
+<script>
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwSxqyTvI2zFYyta8rZTvzchQx0I6oRDtbtVnr-eSIq3Zww2j1f8R4yg1Ipj3TCwwrTkCQ/exec";
+
+  // If already logged in, go straight to home
+  if (sessionStorage.getItem("householdId")) {
+    window.location.href = "home.html";
+  }
+
+  const nameInput = document.getElementById("nameInput");
+  nameInput.addEventListener("keydown", e => {
+    if (e.key === "Enter") handleLookup();
+  });
+
+  async function handleLookup() {
+    const name = nameInput.value.trim();
+    if (!name) return;
+
+    setLoading(true);
+    clearError();
+
+    try {
+      const res = await fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({ action: "lookupGuest", name })
+      });
+      const data = await res.json();
+
+      if (!data.success) {
+        showError("We couldn't find your name on the guest list. Please try a nickname or check your spelling.");
+        setLoading(false);
+        return;
+      }
+
+      if (data.status === "disambiguation") {
+        showDisambiguation(data.households, name);
+        setLoading(false);
+        return;
+      }
+
+      // Found - save session and redirect
+      saveSession(data);
+      window.location.href = "home.html";
+
+    } catch (err) {
+      showError("Something went wrong. Please try again.");
+      setLoading(false);
+    }
+  }
+
+  function showDisambiguation(households, inputName) {
+    document.getElementById("loginBox").style.display = "none";
+    const disambig = document.getElementById("disambig");
+    const options = document.getElementById("householdOptions");
+    disambig.style.display = "block";
+    options.innerHTML = "";
+
+    households.forEach(h => {
+      const div = document.createElement("div");
+      div.className = "household-option";
+      div.innerHTML = `
+        <span>${h.displayName}</span>
+        <button onclick="selectHousehold(${h.householdId}, '${inputName}')">Select</button>
+      `;
+      options.appendChild(div);
+    });
+  }
+
+  async function selectHousehold(householdId, inputName) {
+    setLoading(true);
+    try {
+      const res = await fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({ action: "lookupGuest", name: inputName, forcedHouseholdId: householdId })
+      });
+      const data = await res.json();
+      if (data.success) {
+        saveSession(data);
+        window.location.href = "home.html";
+      } else {
+        showError("Something went wrong. Please try again.");
+        setLoading(false);
+      }
+    } catch (err) {
+      showError("Something went wrong. Please try again.");
+      setLoading(false);
+    }
+  }
+
+  function saveSession(data) {
+    sessionStorage.setItem("householdId", data.householdId);
+    sessionStorage.setItem("greeting", data.greeting);
+    sessionStorage.setItem("displayName", data.displayName);
+    sessionStorage.setItem("quizTaken", data.quizTaken);
+    sessionStorage.setItem("members", JSON.stringify(data.members));
+  }
+
+  function resetLogin() {
+    document.getElementById("disambig").style.display = "none";
+    document.getElementById("loginBox").style.display = "block";
+  }
+
+  function setLoading(state) {
+    document.getElementById("loadingSpinner").classList.toggle("hidden", !state);
+    document.getElementById("enterBtn").disabled = state;
+  }
+
+  function showError(msg) {
+    const el = document.getElementById("loginError");
+    el.textContent = msg;
+    el.style.display = "block";
+  }
+
+  function clearError() {
+    const el = document.getElementById("loginError");
+    el.textContent = "";
+    el.style.display = "none";
+  }
+</script>
+
+</body>
+</html>

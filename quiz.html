@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Quiz</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="page">
+
+  <div class="page-header">
+    <a href="home.html" class="back-btn">&#8592; Back</a>
+    <h1>The Quiz</h1>
+    <p class="subtitle">How well do you know us?</p>
+  </div>
+
+  <div class="content">
+
+    <!-- Intro screen -->
+    <div id="introScreen">
+      <div class="card" style="text-align:center; padding: 32px 24px;">
+        <p style="font-family:'Cormorant Garamond',serif; font-size:1.5rem; margin-bottom:12px;">
+          Think you know us?
+        </p>
+        <p style="font-size:0.88rem; color:var(--gray); line-height:1.8; margin-bottom:24px;">
+          20 questions about [Bride] &amp; [Groom].<br/>
+          Your household gets one attempt — make it count!<br/>
+          Your score will appear on the leaderboard.
+        </p>
+        <button class="btn btn-gold" onclick="startQuiz()">Start the Quiz</button>
+      </div>
+    </div>
+
+    <!-- Already taken screen -->
+    <div id="alreadyTakenScreen" class="hidden">
+      <div class="card" style="text-align:center; padding: 32px 24px;">
+        <div style="font-size:2.5rem; margin-bottom:16px;">&#127942;</div>
+        <p style="font-family:'Cormorant Garamond',serif; font-size:1.5rem; margin-bottom:12px;">
+          Quiz Complete!
+        </p>
+        <p style="font-size:0.88rem; color:var(--gray); margin-bottom:8px;">Your household has already taken the quiz.</p>
+        <p style="font-family:'Cormorant Garamond',serif; font-size:1.8rem; color:var(--gold); margin-bottom:24px;" id="alreadyScore"></p>
+        <a href="leaderboard.html" class="btn btn-gold">View Leaderboard</a>
+      </div>
+    </div>
+
+    <!-- Quiz screen -->
+    <div id="quizScreen" class="hidden">
+      <div class="quiz-progress">
+        <div class="quiz-progress-bar" id="progressBar" style="width:0%"></div>
+      </div>
+
+      <div class="question-num" id="questionNum">Question 1 of 20</div>
+      <div class="question-text" id="questionText"></div>
+      <img id="questionImg" class="question-img hidden" src="" alt="Question image" />
+
+      <div class="answers" id="answersContainer"></div>
+
+      <button class="btn btn-primary mt-24 hidden" id="nextBtn" onclick="nextQuestion()">Next Question</button>
+    </div>
+
+    <!-- Results screen -->
+    <div id="resultsScreen" class="hidden">
+      <div style="text-align:center; padding: 16px 0 32px;">
+        <div style="font-size:3rem; margin-bottom:16px;">&#127881;</div>
+        <p style="font-family:'Cormorant Garamond',serif; font-size:1.4rem; margin-bottom:8px;">Quiz Complete!</p>
+        <p style="font-size:0.88rem; color:var(--gray); margin-bottom:4px;">Your score</p>
+        <p style="font-family:'Cormorant Garamond',serif; font-size:3rem; color:var(--gold);" id="finalScore"></p>
+        <p style="font-size:0.85rem; color:var(--gray); margin-bottom:32px;" id="scoreMessage"></p>
+        <a href="leaderboard.html" class="btn btn-gold">See the Leaderboard</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  if (!sessionStorage.getItem("householdId")) {
+    window.location.href = "index.html";
+  }
+
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwSxqyTvI2zFYyta8rZTvzchQx0I6oRDtbtVnr-eSIq3Zww2j1f8R4yg1Ipj3TCwwrTkCQ/exec";
+
+  const householdId = sessionStorage.getItem("householdId");
+  const quizTaken = sessionStorage.getItem("quizTaken") === "true";
+
+  // ============================================================
+  // QUIZ QUESTIONS
+  // Format:
+  // {
+  //   question: "Question text",
+  //   image: "filename.jpg" or null,   <- optional photo
+  //   answers: ["A", "B", "C", "D"],
+  //   correct: 0                        <- index of correct answer
+  // }
+  // ============================================================
+  const questions = [
+    {
+      question: "Where did [Bride] and [Groom] first meet?",
+      image: null,
+      answers: ["Option A", "Option B", "Option C", "Option D"],
+      correct: 0
+    },
+    {
+      question: "What is [Groom]'s favorite sports team?",
+      image: null,
+      answers: ["Option A", "Option B", "Option C", "Option D"],
+      correct: 0
+    },
+    {
+      question: "What is [Bride]'s favorite movie?",
+      image: null,
+      answers: ["Option A", "Option B", "Option C", "Option D"],
+      correct: 0
+    },
+    {
+      question: "Where did [Groom] propose?",
+      image: "proposal.jpg",
+      answers: ["Option A", "Option B", "Option C", "Option D"],
+      correct: 0
+    },
+    {
+      question: "What is [Bride]'s go-to coffee order?",
+      image: null,
+      answers: ["Option A", "Option B", "Option C", "Option D"],
+      correct: 0
+    },
+    {
+      question: "What year did [Bride] and [Groom] start dating?",
+      image: null,
+      answers: ["Option A", "Option B", "Option C", "Option D"],
+      correct: 0
+    },
+    {
+      question: "Where did they go on their first date?",
+      image: null,
+      answers: ["Option A", "Option B", "Option C", "Option D"],
+      correct: 0
+    },
+    {
+      question: "What is [Groom]'s hidden talent?",
+      image: null,
+      answers: ["Option A", "Option B", "Option C", "Option D"],
+      correct: 0
+    },
+    {
+      question: "What is [Bride] most likely doing on a Sunday morning?",
+      image: null,
+      answers: ["Option A", "Option B", "Option C", "Option D"],
+      correct: 0
+    },
+    {
+      question: "What is their favorite thing to do together?",
+      image: "together.jpg",
+      answers: ["Option A", "Option B", "Option C", "Option D"],
+      correct: 0
+    },
+    {
+      question: "What is [Groom]'s favorite meal?",
+      image: null,
+      answers: ["Option A", "Option B", "Option C", "Option D"],
+      correct: 0
+    },
+    {
+      question: "How did [Bride] react when [Groom] proposed?",
+      image: null,
+      answers: ["Option A", "Option B", "Option C", "Option D"],
+      correct: 0
+    },
+    {
+      question: "What TV show are they most likely binge-watching?",
+      image: null,
+      answers: ["Option A", "Option B", "Option C", "Option D"],
+      correct: 0
+    },
+    {
+      question: "What is [Bride]'s favorite vacation destination?",
+      image: null,
+      answers: ["Option A", "Option B", "Option C", "Option D"],
+      correct: 0
+    },
+    {
+      question: "What does [Groom] always forget to do?",
+      image: null,
+      answers: ["Option A", "Option B", "Option C", "Option D"],
+      correct: 0
+    },
+    {
+      question: "What is [Bride]'s biggest pet peeve?",
+      image: null,
+      answers: ["Option A", "Option B", "Option C", "Option D"],
+      correct: 0
+    },
+    {
+      question: "Which of these is their go-to date night?",
+      image: null,
+      answers: ["Option A", "Option B", "Option C", "Option D"],
+      correct: 0
+    },
+    {
+      question: "What is [Groom] always saying?",
+      image: null,
+      answers: ["Option A", "Option B", "Option C", "Option D"],
+      correct: 0
+    },
+    {
+      question: "What would [Bride] take to a desert island?",
+      image: null,
+      answers: ["Option A", "Option B", "Option C", "Option D"],
+      correct: 0
+    },
+    {
+      question: "Who said 'I love you' first?",
+      image: null,
+      answers: ["[Bride]", "[Groom]", "They said it at the same time", "Neither — it was a note"],
+      correct: 0
+    }
+  ];
+
+  // State
+  let currentQ = 0;
+  let score = 0;
+  let answered = false;
+
+  // Init
+  function init() {
+    if (quizTaken) {
+      document.getElementById("introScreen").classList.add("hidden");
+      document.getElementById("alreadyTakenScreen").classList.remove("hidden");
+      document.getElementById("alreadyScore").textContent = "Check the leaderboard to see how you ranked!";
+    }
+  }
+
+  function startQuiz() {
+    document.getElementById("introScreen").classList.add("hidden");
+    document.getElementById("quizScreen").classList.remove("hidden");
+    renderQuestion();
+  }
+
+  function renderQuestion() {
+    const q = questions[currentQ];
+    answered = false;
+
+    // Progress
+    const pct = (currentQ / questions.length) * 100;
+    document.getElementById("progressBar").style.width = pct + "%";
+    document.getElementById("questionNum").textContent = `Question ${currentQ + 1} of ${questions.length}`;
+    document.getElementById("questionText").textContent = q.question;
+    document.getElementById("nextBtn").classList.add("hidden");
+
+    // Image
+    const img = document.getElementById("questionImg");
+    if (q.image) {
+      img.src = q.image;
+      img.classList.remove("hidden");
+      img.onerror = () => img.classList.add("hidden");
+    } else {
+      img.classList.add("hidden");
+    }
+
+    // Answers
+    const container = document.getElementById("answersContainer");
+    container.innerHTML = "";
+    q.answers.forEach((answer, i) => {
+      const btn = document.createElement("button");
+      btn.className = "answer-btn";
+      btn.textContent = answer;
+      btn.onclick = () => selectAnswer(i);
+      container.appendChild(btn);
+    });
+  }
+
+  function selectAnswer(index) {
+    if (answered) return;
+    answered = true;
+
+    const q = questions[currentQ];
+    const buttons = document.querySelectorAll(".answer-btn");
+
+    if (index === q.correct) {
+      score++;
+      buttons[index].classList.add("correct");
+    } else {
+      buttons[index].classList.add("incorrect");
+      buttons[q.correct].classList.add("reveal-correct");
+    }
+
+    // Disable all buttons
+    buttons.forEach(b => b.style.pointerEvents = "none");
+
+    // Show next button
+    const nextBtn = document.getElementById("nextBtn");
+    nextBtn.classList.remove("hidden");
+    if (currentQ === questions.length - 1) {
+      nextBtn.textContent = "See My Results";
+    } else {
+      nextBtn.textContent = "Next Question";
+    }
+  }
+
+  async function nextQuestion() {
+    currentQ++;
+    if (currentQ >= questions.length) {
+      await finishQuiz();
+    } else {
+      renderQuestion();
+    }
+  }
+
+  async function finishQuiz() {
+    document.getElementById("quizScreen").classList.add("hidden");
+
+    // Submit score
+    try {
+      await fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          action: "submitQuiz",
+          householdId,
+          score
+        })
+      });
+      sessionStorage.setItem("quizTaken", "true");
+    } catch (err) {
+      console.error("Failed to submit score", err);
+    }
+
+    // Show results
+    const pct = Math.round((score / questions.length) * 100);
+    let message = "";
+    if (pct === 100) message = "Perfect score! You really know them! 🎉";
+    else if (pct >= 80) message = "Impressive! You clearly pay attention.";
+    else if (pct >= 60) message = "Not bad! You know a thing or two.";
+    else if (pct >= 40) message = "Room to grow! Come to the wedding to learn more.";
+    else message = "Maybe get to know them a little better! 😄";
+
+    document.getElementById("finalScore").textContent = `${score} / ${questions.length}`;
+    document.getElementById("scoreMessage").textContent = message;
+    document.getElementById("resultsScreen").classList.remove("hidden");
+
+    // Update progress bar to full
+    document.getElementById("progressBar").style.width = "100%";
+  }
+
+  init();
+</script>
+
+</body>
+</html>

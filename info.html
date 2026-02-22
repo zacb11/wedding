@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wedding Info</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="page">
+
+  <div class="page-header">
+    <a href="home.html" class="back-btn">&#8592; Back</a>
+    <h1>Wedding Info</h1>
+    <p class="subtitle">Everything you need to know</p>
+  </div>
+
+  <div class="content">
+
+    <!-- Date & Time -->
+    <div class="info-block">
+      <h3>Date &amp; Time</h3>
+      <p>
+        [Day of Week], [Month] [Day], [Year]<br/>
+        Ceremony begins at [Time]
+      </p>
+    </div>
+
+    <div class="divider"><span>&#10038;</span></div>
+
+    <!-- Venue -->
+    <div class="info-block">
+      <h3>Ceremony &amp; Reception</h3>
+      <p>
+        [Venue Name]<br/>
+        [Street Address]<br/>
+        [City, State ZIP]
+      </p>
+      <a href="https://maps.google.com" target="_blank" class="btn btn-outline mt-16" style="display:inline-block; padding: 12px 24px; font-size: 0.72rem;">
+        Get Directions
+      </a>
+    </div>
+
+    <div class="divider"><span>&#10038;</span></div>
+
+    <!-- Schedule -->
+    <div class="info-block">
+      <h3>Schedule</h3>
+      <p>
+        [Time] &nbsp;&mdash;&nbsp; Doors Open<br/>
+        [Time] &nbsp;&mdash;&nbsp; Ceremony<br/>
+        [Time] &nbsp;&mdash;&nbsp; Cocktail Hour<br/>
+        [Time] &nbsp;&mdash;&nbsp; Reception<br/>
+        [Time] &nbsp;&mdash;&nbsp; Grand Exit
+      </p>
+    </div>
+
+    <div class="divider"><span>&#10038;</span></div>
+
+    <!-- Dress Code -->
+    <div class="info-block">
+      <h3>Dress Code</h3>
+      <p>
+        [Dress Code — e.g. Black Tie, Cocktail Attire, Semi-Formal]<br/><br/>
+        [Any additional notes — e.g. "Please avoid wearing white or black" or "Ladies, beware of heels on the lawn"]
+      </p>
+    </div>
+
+    <div class="divider"><span>&#10038;</span></div>
+
+    <!-- Hotels -->
+    <div class="info-block">
+      <h3>Where to Stay</h3>
+      <p style="margin-bottom: 16px;">We've put together a list of nearby hotels for out-of-town guests:</p>
+
+      <div class="card" style="margin-bottom:12px;">
+        <p style="font-family:'Cormorant Garamond',serif; font-size:1.2rem; margin-bottom:4px;">[Hotel Name]</p>
+        <p style="font-size:0.85rem; color:var(--gray);">[Address] &nbsp;·&nbsp; ~[X] min from venue</p>
+        <a href="#" target="_blank" style="font-size:0.78rem; color:var(--gold); text-decoration:none; letter-spacing:0.05em;">Book Here &#8599;</a>
+      </div>
+
+      <div class="card" style="margin-bottom:12px;">
+        <p style="font-family:'Cormorant Garamond',serif; font-size:1.2rem; margin-bottom:4px;">[Hotel Name]</p>
+        <p style="font-size:0.85rem; color:var(--gray);">[Address] &nbsp;·&nbsp; ~[X] min from venue</p>
+        <a href="#" target="_blank" style="font-size:0.78rem; color:var(--gold); text-decoration:none; letter-spacing:0.05em;">Book Here &#8599;</a>
+      </div>
+
+      <!-- Add more hotels as needed -->
+
+    </div>
+
+    <div class="divider"><span>&#10038;</span></div>
+
+    <!-- Questions -->
+    <div class="info-block" style="text-align:center;">
+      <h3>Questions?</h3>
+      <p>
+        Feel free to reach out to us at<br/>
+        <a href="mailto:[email placeholder]">[email placeholder]</a>
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  if (!sessionStorage.getItem("householdId")) {
+    window.location.href = "index.html";
+  }
+</script>
+
+</body>
+</html>

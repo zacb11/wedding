@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RSVP</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="page">
+
+  <div class="page-header">
+    <a href="home.html" class="back-btn">&#8592; Back</a>
+    <h1>RSVP</h1>
+    <p class="subtitle">Please respond by [RSVP Deadline]</p>
+  </div>
+
+  <div class="content">
+
+    <!-- Member RSVP cards (dynamically generated) -->
+    <div id="memberCards"></div>
+
+    <!-- Add Guest -->
+    <div class="add-guest-wrap" id="addGuestWrap" style="display:none;">
+      <button class="btn btn-outline" id="addGuestBtn" onclick="toggleAddGuest()">+ Add a Guest</button>
+      <div id="addGuestForm" style="display:none; margin-top:12px;">
+        <div class="input-wrap">
+          <label>Guest Name</label>
+          <input type="text" id="guestNameInput" placeholder="Full name" />
+        </div>
+        <div class="toggle-group">
+          <button class="toggle-btn" id="guestYes" onclick="setGuestAttendance('Yes')">Will Attend</button>
+          <button class="toggle-btn" id="guestNo" onclick="setGuestAttendance('No')">Will Not Attend</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"><span>&#10038;</span></div>
+
+    <!-- Submit -->
+    <div id="submitArea">
+      <button class="btn btn-primary" onclick="submitRSVP()">Submit RSVP</button>
+    </div>
+
+    <!-- Confirmation -->
+    <div id="confirmation" class="confirmation hidden">
+      <div class="confirmation-icon">&#10003;</div>
+      <h2>You're all set!</h2>
+      <p class="mt-8">Your RSVP has been recorded.<br/>We can't wait to celebrate with you.</p>
+      <a href="home.html" class="btn btn-outline mt-24" style="display:block;">Back to Home</a>
+    </div>
+
+    <div id="submitError" class="error-msg" style="text-align:center; margin-top:12px;"></div>
+
+  </div>
+</div>
+
+<script>
+  if (!sessionStorage.getItem("householdId")) {
+    window.location.href = "index.html";
+  }
+
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwSxqyTvI2zFYyta8rZTvzchQx0I6oRDtbtVnr-eSIq3Zww2j1f8R4yg1Ipj3TCwwrTkCQ/exec";
+
+  const householdId = sessionStorage.getItem("householdId");
+  const displayName = sessionStorage.getItem("displayName");
+  let members = JSON.parse(sessionStorage.getItem("members") || "[]");
+  let guestAttendance = null;
+  let addedGuest = null;
+
+  // Check if plus one allowed - we'll show add guest if any member has it
+  // For now show it based on a session flag (we can refine later)
+  // We'll just always show it and let the Apps Script validate
+  // Actually let's check members data
+  function init() {
+    renderMembers();
+    // Show add guest button - Apps Script will have plus one logic
+    document.getElementById("addGuestWrap").style.display = "block";
+  }
+
+  function renderMembers() {
+    const container = document.getElementById("memberCards");
+    container.innerHTML = "";
+    members.forEach((m, i) => {
+      const status = m.rsvpStatus || "Pending";
+      const yesActive = status === "Will Attend" ? "selected-yes" : "";
+      const noActive = status === "Will Not Attend" ? "selected-no" : "";
+
+      const card = document.createElement("div");
+      card.className = "member-card";
+      card.innerHTML = `
+        <div class="member-name">${m.fullName}</div>
+        <div class="toggle-group">
+          <button class="toggle-btn ${yesActive}" id="yes-${i}" onclick="setAttendance(${i}, 'Will Attend')">Will Attend</button>
+          <button class="toggle-btn ${noActive}" id="no-${i}" onclick="setAttendance(${i}, 'Will Not Attend')">Will Not Attend</button>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  }
+
+  function setAttendance(index, status) {
+    members[index].rsvpStatus = status;
+    const yesBtn = document.getElementById(`yes-${index}`);
+    const noBtn = document.getElementById(`no-${index}`);
+    yesBtn.className = "toggle-btn" + (status === "Will Attend" ? " selected-yes" : "");
+    noBtn.className = "toggle-btn" + (status === "Will Not Attend" ? " selected-no" : "");
+  }
+
+  function toggleAddGuest() {
+    const form = document.getElementById("addGuestForm");
+    const btn = document.getElementById("addGuestBtn");
+    const visible = form.style.display !== "none";
+    form.style.display = visible ? "none" : "block";
+    btn.textContent = visible ? "+ Add a Guest" : "- Cancel";
+    if (visible) {
+      addedGuest = null;
+      guestAttendance = null;
+    }
+  }
+
+  function setGuestAttendance(status) {
+    guestAttendance = status;
+    document.getElementById("guestYes").className = "toggle-btn" + (status === "Yes" ? " selected-yes" : "");
+    document.getElementById("guestNo").className = "toggle-btn" + (status === "No" ? " selected-no" : "");
+  }
+
+  async function submitRSVP() {
+    // Validate all members have a selection
+    const unselected = members.filter(m => !m.rsvpStatus || m.rsvpStatus === "Pending");
+    if (unselected.length > 0) {
+      showError("Please select attendance for all guests.");
+      return;
+    }
+
+    // Build added guest if present
+    const guestNameInput = document.getElementById("guestNameInput");
+    const addGuestForm = document.getElementById("addGuestForm");
+    let addedGuests = [];
+
+    if (addGuestForm.style.display !== "none" && guestNameInput.value.trim()) {
+      if (!guestAttendance) {
+        showError("Please select attendance for your added guest.");
+        return;
+      }
+      addedGuests = [{
+        householdId,
+        displayName,
+        fullName: guestNameInput.value.trim(),
+        rsvpStatus: guestAttendance === "Yes" ? "Will Attend" : "Will Not Attend"
+      }];
+    }
+
+    const submitBtn = document.querySelector("#submitArea .btn");
+    submitBtn.textContent = "Submitting...";
+    submitBtn.disabled = true;
+
+    try {
+      const res = await fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          action: "submitRSVP",
+          members: members.map(m => ({ row: m.row, rsvpStatus: m.rsvpStatus })),
+          addedGuests
+        })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        // Update session
+        sessionStorage.setItem("members", JSON.stringify(members));
+        document.getElementById("submitArea").classList.add("hidden");
+        document.getElementById("addGuestWrap").classList.add("hidden");
+        document.getElementById("memberCards").classList.add("hidden");
+        document.querySelector(".divider").classList.add("hidden");
+        document.getElementById("confirmation").classList.remove("hidden");
+      } else {
+        showError("Something went wrong. Please try again.");
+        submitBtn.textContent = "Submit RSVP";
+        submitBtn.disabled = false;
+      }
+    } catch (err) {
+      showError("Something went wrong. Please try again.");
+      submitBtn.textContent = "Submit RSVP";
+      submitBtn.disabled = false;
+    }
+  }
+
+  function showError(msg) {
+    const el = document.getElementById("submitError");
+    el.textContent = msg;
+    el.style.display = "block";
+    setTimeout(() => el.style.display = "none", 4000);
+  }
+
+  init();
+</script>
+
+</body>
+</html>
