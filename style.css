@@ -27,11 +27,36 @@
 html, body {
   height: 100%;
   font-family: 'Montserrat', sans-serif;
-  background: var(--white);
-  color: var(--black);
+  background: var(--white) !important;
+  color: var(--black) !important;
   font-size: 15px;
   line-height: 1.6;
   color-scheme: light only;
+  -webkit-color-scheme: light only;
+}
+
+/* Force light mode regardless of system setting */
+@media (prefers-color-scheme: dark) {
+  html, body {
+    background: var(--white) !important;
+    color: var(--black) !important;
+  }
+  input[type="text"] {
+    background: var(--white) !important;
+    color: var(--black) !important;
+  }
+  .card {
+    background: var(--card-bg) !important;
+    color: var(--black) !important;
+  }
+  .member-card {
+    background: var(--white) !important;
+    color: var(--black) !important;
+  }
+  .answer-btn {
+    background: var(--white) !important;
+    color: var(--black) !important;
+  }
 }
 
 /* ---- TYPOGRAPHY ---- */
