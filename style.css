@@ -31,6 +31,7 @@ html, body {
   color: var(--black);
   font-size: 15px;
   line-height: 1.6;
+  color-scheme: light only;
 }
 
 /* ---- TYPOGRAPHY ---- */
@@ -87,7 +88,7 @@ h3 { font-size: 1.3rem; }
 .hero-greeting {
   font-family: 'Cormorant Garamond', serif;
   font-size: 1.6rem;
-  font-weight: 300;
+  font-weight: 700;
   color: var(--gold-light);
   font-style: italic;
   display: block;
