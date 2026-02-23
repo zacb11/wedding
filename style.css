@@ -178,14 +178,15 @@ h3 { font-size: 1.3rem; }
 }
 
 .btn-outline {
-  background: transparent;
+  background: var(--white);
   color: var(--black);
-  border: 1.5px solid var(--black);
+  border: 1.5px solid var(--white);
 }
 
 .btn-outline:hover, .btn-outline:active {
-  background: var(--black);
-  color: var(--white);
+  background: #e8e8e8;
+  color: var(--black);
+  border-color: #e8e8e8;
 }
 
 .btn-gold {
