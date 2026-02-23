@@ -157,12 +157,12 @@ p { color: #ffffff; }
 }
 
 .btn-primary {
-  background: var(--white);
-  color: var(--black);
+  background: #0a0a0a;
+  color: #ffffff;
 }
 
 .btn-primary:hover, .btn-primary:active {
-  background: #ddd;
+  background: #222;
 }
 
 .btn-outline {
