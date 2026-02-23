@@ -15,6 +15,7 @@
   --light-gray: #e8e8e8;
   --card-bg: #fff;
   --shadow: 0 4px 24px rgba(0,0,0,0.08);
+  --page-bg: #1a1a1a;
 }
 
 * {
@@ -27,7 +28,7 @@
 html, body {
   height: 100%;
   font-family: 'Montserrat', sans-serif;
-  background: var(--white) !important;
+  background-color: #1a1a1a !important;
   color: var(--black) !important;
   font-size: 15px;
   line-height: 1.6;
@@ -38,7 +39,7 @@ html, body {
 /* Force light mode regardless of system setting */
 @media (prefers-color-scheme: dark) {
   html, body {
-    background: var(--white) !important;
+    background-color: #1a1a1a !important;
     color: var(--black) !important;
   }
   input[type="text"] {
