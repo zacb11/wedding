@@ -11,13 +11,13 @@
   --white: #fafafa;
   --gold: #c9a84c;
   --gold-light: #e8d5a3;
-  --gray: #aaa;
+  --gray: #cccccc;
   --light-gray: #333;
   --card-bg: #242424;
   --shadow: 0 4px 24px rgba(0,0,0,0.4);
   --page-bg: #1a1a1a;
-  --text: #f0f0f0;
-  --text-muted: #aaa;
+  --text: #ffffff;
+  --text-muted: #cccccc;
 }
 
 * {
@@ -57,7 +57,7 @@ h1 { font-size: 2.4rem; line-height: 1.2; }
 h2 { font-size: 1.8rem; }
 h3 { font-size: 1.3rem; }
 
-p { color: var(--text); }
+p { color: #ffffff; }
 
 /* ---- LAYOUT ---- */
 .page {
@@ -246,7 +246,7 @@ p { color: var(--text); }
   padding: 24px;
   margin-bottom: 16px;
   box-shadow: var(--shadow);
-  color: var(--text);
+  color: #ffffff;
 }
 
 /* ---- DIVIDER ---- */
@@ -292,7 +292,7 @@ input[type="text"] {
   border-radius: 2px;
   font-family: 'Montserrat', sans-serif;
   font-size: 1rem;
-  color: var(--text);
+  color: #ffffff;
   background: var(--card-bg);
   transition: border-color 0.2s;
   -webkit-appearance: none;
@@ -533,7 +533,7 @@ input[type="text"]:focus {
   font-size: 0.88rem;
   cursor: pointer;
   transition: all 0.15s;
-  color: var(--text);
+  color: #ffffff;
 }
 
 .answer-btn:hover {
@@ -614,7 +614,7 @@ input[type="text"]:focus {
 
 .info-block p {
   font-size: 0.95rem;
-  color: var(--text);
+  color: #ffffff;
   line-height: 1.8;
 }
 
@@ -648,7 +648,7 @@ input[type="text"]:focus {
 .about-section p {
   font-size: 0.92rem;
   line-height: 1.9;
-  color: var(--text);
+  color: #ffffff;
 }
 
 /* ---- REGISTRY ---- */
@@ -661,7 +661,7 @@ input[type="text"]:focus {
   border-radius: 4px;
   margin-bottom: 14px;
   text-decoration: none;
-  color: var(--text);
+  color: #ffffff;
   background: var(--card-bg);
   transition: all 0.2s;
 }
