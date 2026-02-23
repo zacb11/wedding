@@ -223,16 +223,15 @@
   let currentQ = 0;
   let score = 0;
   let answered = false;
-  let savedAnswers = []; // tracks all answers given so far
+  let savedAnswers = [];
 
-  // Init — check quiz status from session
-  async function init() {
+  // Init — check quiz status from sessionStorage only
+  function init() {
     const quizStatus = sessionStorage.getItem("quizStatus") || "Not Started";
     const savedAnswersRaw = sessionStorage.getItem("quizAnswers");
     savedAnswers = savedAnswersRaw ? JSON.parse(savedAnswersRaw) : [];
 
     if (quizStatus === "Complete") {
-      // Already finished — show completed screen
       showAlreadyTaken();
       return;
     }
@@ -248,32 +247,19 @@
       renderQuestion();
       return;
     }
-
-    // Not started — show intro
   }
 
   function showAlreadyTaken() {
     document.getElementById("introScreen").classList.add("hidden");
     document.getElementById("alreadyTakenScreen").classList.remove("hidden");
     const savedScore = sessionStorage.getItem("quizScore");
-    if (savedScore !== null) {
-      document.getElementById("alreadyScore").textContent = `Your score: ${savedScore} / ${questions.length}`;
-    } else {
-      document.getElementById("alreadyScore").textContent = "Check the leaderboard to see how you ranked!";
-    }
+    document.getElementById("alreadyScore").textContent = savedScore !== null
+      ? `Your score: ${savedScore} / ${questions.length}`
+      : "Check the leaderboard to see how you ranked!";
   }
 
-  async function startQuiz() {
-    // Mark as In Progress in sheet
-    try {
-      await fetch(SCRIPT_URL, {
-        method: "POST",
-        body: JSON.stringify({ action: "startQuiz", householdId })
-      });
-    } catch (err) {
-      console.error("Failed to start quiz", err);
-    }
-
+  function startQuiz() {
+    // Mark as In Progress in sessionStorage only — no sheet call
     sessionStorage.setItem("quizStatus", "In Progress");
     sessionStorage.setItem("quizAnswers", JSON.stringify([]));
     savedAnswers = [];
@@ -289,14 +275,12 @@
     const q = questions[currentQ];
     answered = false;
 
-    // Progress
     const pct = (currentQ / questions.length) * 100;
     document.getElementById("progressBar").style.width = pct + "%";
     document.getElementById("questionNum").textContent = `Question ${currentQ + 1} of ${questions.length}`;
     document.getElementById("questionText").textContent = q.question;
     document.getElementById("nextBtn").classList.add("hidden");
 
-    // Image
     const img = document.getElementById("questionImg");
     if (q.image) {
       img.src = q.image;
@@ -306,7 +290,6 @@
       img.classList.add("hidden");
     }
 
-    // Answers
     const container = document.getElementById("answersContainer");
     container.innerHTML = "";
     q.answers.forEach((answer, i) => {
@@ -318,7 +301,7 @@
     });
   }
 
-  async function selectAnswer(index) {
+  function selectAnswer(index) {
     if (answered) return;
     answered = true;
 
@@ -333,37 +316,21 @@
       buttons[q.correct].classList.add("reveal-correct");
     }
 
-    // Disable all buttons
     buttons.forEach(b => b.style.pointerEvents = "none");
 
-    // Save answer to session and sheet
+    // Save to sessionStorage only — no network call
     savedAnswers[currentQ] = index;
     sessionStorage.setItem("quizAnswers", JSON.stringify(savedAnswers));
 
-    try {
-      await fetch(SCRIPT_URL, {
-        method: "POST",
-        body: JSON.stringify({
-          action: "saveAnswer",
-          householdId,
-          questionIndex: currentQ,
-          answerIndex: index
-        })
-      });
-    } catch (err) {
-      console.error("Failed to save answer", err);
-    }
-
-    // Show next button
     const nextBtn = document.getElementById("nextBtn");
     nextBtn.classList.remove("hidden");
     nextBtn.textContent = currentQ === questions.length - 1 ? "See My Results" : "Next Question";
   }
 
-  async function nextQuestion() {
+  function nextQuestion() {
     currentQ++;
     if (currentQ >= questions.length) {
-      await finishQuiz();
+      finishQuiz();
     } else {
       renderQuestion();
     }
@@ -372,10 +339,16 @@
   async function finishQuiz() {
     document.getElementById("quizScreen").classList.add("hidden");
 
+    // One single write to the sheet at the end
     try {
       await fetch(SCRIPT_URL, {
         method: "POST",
-        body: JSON.stringify({ action: "submitQuiz", householdId, score })
+        body: JSON.stringify({
+          action: "submitQuiz",
+          householdId,
+          score,
+          answers: savedAnswers.join(",")
+        })
       });
       sessionStorage.setItem("quizStatus", "Complete");
       sessionStorage.setItem("quizScore", score);
