@@ -157,7 +157,10 @@
     sessionStorage.setItem("householdId", data.householdId);
     sessionStorage.setItem("greeting", data.greeting);
     sessionStorage.setItem("displayName", data.displayName);
-    sessionStorage.setItem("quizTaken", data.quizTaken);
+    sessionStorage.setItem("quizTaken", data.quizStatus === "Complete");
+    sessionStorage.setItem("quizStatus", data.quizStatus || "Not Started");
+    sessionStorage.setItem("quizAnswers", JSON.stringify(data.quizAnswers || []));
+    sessionStorage.setItem("quizScore", data.quizScore || "");
     sessionStorage.setItem("members", JSON.stringify(data.members));
   }
 

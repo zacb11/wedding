@@ -223,17 +223,63 @@
   let currentQ = 0;
   let score = 0;
   let answered = false;
+  let savedAnswers = []; // tracks all answers given so far
 
-  // Init
-  function init() {
-    if (quizTaken) {
+  // Init — check quiz status from session
+  async function init() {
+    const quizStatus = sessionStorage.getItem("quizStatus") || "Not Started";
+    const savedAnswersRaw = sessionStorage.getItem("quizAnswers");
+    savedAnswers = savedAnswersRaw ? JSON.parse(savedAnswersRaw) : [];
+
+    if (quizStatus === "Complete") {
+      // Already finished — show completed screen
+      showAlreadyTaken();
+      return;
+    }
+
+    if (quizStatus === "In Progress" && savedAnswers.length > 0) {
+      // Resume from where they left off
+      currentQ = savedAnswers.length;
+      score = savedAnswers.reduce((acc, answerIdx, qIdx) => {
+        return acc + (answerIdx === questions[qIdx].correct ? 1 : 0);
+      }, 0);
       document.getElementById("introScreen").classList.add("hidden");
-      document.getElementById("alreadyTakenScreen").classList.remove("hidden");
+      document.getElementById("quizScreen").classList.remove("hidden");
+      renderQuestion();
+      return;
+    }
+
+    // Not started — show intro
+  }
+
+  function showAlreadyTaken() {
+    document.getElementById("introScreen").classList.add("hidden");
+    document.getElementById("alreadyTakenScreen").classList.remove("hidden");
+    const savedScore = sessionStorage.getItem("quizScore");
+    if (savedScore !== null) {
+      document.getElementById("alreadyScore").textContent = `Your score: ${savedScore} / ${questions.length}`;
+    } else {
       document.getElementById("alreadyScore").textContent = "Check the leaderboard to see how you ranked!";
     }
   }
 
-  function startQuiz() {
+  async function startQuiz() {
+    // Mark as In Progress in sheet
+    try {
+      await fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({ action: "startQuiz", householdId })
+      });
+    } catch (err) {
+      console.error("Failed to start quiz", err);
+    }
+
+    sessionStorage.setItem("quizStatus", "In Progress");
+    sessionStorage.setItem("quizAnswers", JSON.stringify([]));
+    savedAnswers = [];
+    currentQ = 0;
+    score = 0;
+
     document.getElementById("introScreen").classList.add("hidden");
     document.getElementById("quizScreen").classList.remove("hidden");
     renderQuestion();
@@ -272,7 +318,7 @@
     });
   }
 
-  function selectAnswer(index) {
+  async function selectAnswer(index) {
     if (answered) return;
     answered = true;
 
@@ -290,14 +336,28 @@
     // Disable all buttons
     buttons.forEach(b => b.style.pointerEvents = "none");
 
+    // Save answer to session and sheet
+    savedAnswers[currentQ] = index;
+    sessionStorage.setItem("quizAnswers", JSON.stringify(savedAnswers));
+
+    try {
+      await fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          action: "saveAnswer",
+          householdId,
+          questionIndex: currentQ,
+          answerIndex: index
+        })
+      });
+    } catch (err) {
+      console.error("Failed to save answer", err);
+    }
+
     // Show next button
     const nextBtn = document.getElementById("nextBtn");
     nextBtn.classList.remove("hidden");
-    if (currentQ === questions.length - 1) {
-      nextBtn.textContent = "See My Results";
-    } else {
-      nextBtn.textContent = "Next Question";
-    }
+    nextBtn.textContent = currentQ === questions.length - 1 ? "See My Results" : "Next Question";
   }
 
   async function nextQuestion() {
@@ -312,35 +372,29 @@
   async function finishQuiz() {
     document.getElementById("quizScreen").classList.add("hidden");
 
-    // Submit score
     try {
       await fetch(SCRIPT_URL, {
         method: "POST",
-        body: JSON.stringify({
-          action: "submitQuiz",
-          householdId,
-          score
-        })
+        body: JSON.stringify({ action: "submitQuiz", householdId, score })
       });
+      sessionStorage.setItem("quizStatus", "Complete");
+      sessionStorage.setItem("quizScore", score);
       sessionStorage.setItem("quizTaken", "true");
     } catch (err) {
       console.error("Failed to submit score", err);
     }
 
-    // Show results
     const pct = Math.round((score / questions.length) * 100);
     let message = "";
-    if (pct === 100) message = "Perfect score! You really know them! 🎉";
+    if (pct === 100) message = "Perfect score! You really know us! 🎉";
     else if (pct >= 80) message = "Impressive! You clearly pay attention.";
     else if (pct >= 60) message = "Not bad! You know a thing or two.";
     else if (pct >= 40) message = "Room to grow! Come to the wedding to learn more.";
-    else message = "Maybe get to know them a little better! 😄";
+    else message = "Maybe get to know us a little better! 😄";
 
     document.getElementById("finalScore").textContent = `${score} / ${questions.length}`;
     document.getElementById("scoreMessage").textContent = message;
     document.getElementById("resultsScreen").classList.remove("hidden");
-
-    // Update progress bar to full
     document.getElementById("progressBar").style.width = "100%";
   }
 
