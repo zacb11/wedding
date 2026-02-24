@@ -159,6 +159,7 @@ p { color: #ffffff; }
 .btn-primary {
   background: #0a0a0a;
   color: #ffffff;
+  border: 1.5px solid var(--white);
 }
 
 .btn-primary:hover, .btn-primary:active {
