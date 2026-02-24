@@ -6,8 +6,28 @@
   <meta name="color-scheme" content="light only" />
   <title>The Quiz</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    .dialog-box {
+      background: #2a2a2a;
+      border-left: 3px solid var(--gold);
+      border-radius: 4px;
+      padding: 14px 18px;
+      margin-bottom: 16px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem;
+      color: var(--gold-light);
+      font-style: italic;
+      line-height: 1.6;
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
 </head>
-<body style="background-color:#1a1a1a !important; color:#f0f0f0 !important;">
+<body style="background-color:#1a1a1a !important; color:#ffffff !important;">
 
 <div class="page">
 
@@ -26,7 +46,7 @@
           Think you know us?
         </p>
         <p style="font-size:0.88rem; color:#cccccc; line-height:1.8; margin-bottom:24px;">
-          20 questions about Abby &amp; Zac.<br/>
+          25 questions about Abby &amp; Zac.<br/>
           Your household gets one attempt — make it count!<br/>
           Your score will appear on the leaderboard.
         </p>
@@ -38,9 +58,7 @@
     <div id="alreadyTakenScreen" class="hidden">
       <div class="card" style="text-align:center; padding: 32px 24px;">
         <div style="font-size:2.5rem; margin-bottom:16px;">&#127942;</div>
-        <p style="font-family:'Cormorant Garamond',serif; font-size:1.5rem; margin-bottom:12px;">
-          Quiz Complete!
-        </p>
+        <p style="font-family:'Cormorant Garamond',serif; font-size:1.5rem; margin-bottom:12px;">Quiz Complete!</p>
         <p style="font-size:0.88rem; color:#cccccc; margin-bottom:8px;">Your household has already taken the quiz.</p>
         <p style="font-family:'Cormorant Garamond',serif; font-size:1.8rem; color:var(--gold); margin-bottom:24px;" id="alreadyScore"></p>
         <a href="leaderboard.html" class="btn btn-gold">View Leaderboard</a>
@@ -53,9 +71,12 @@
         <div class="quiz-progress-bar" id="progressBar" style="width:0%"></div>
       </div>
 
-      <div class="question-num" id="questionNum">Question 1 of 20</div>
+      <div class="question-num" id="questionNum">Question 1 of 25</div>
       <div class="question-text" id="questionText"></div>
       <img id="questionImg" class="question-img hidden" src="" alt="Question image" />
+
+      <!-- Dialog appears here after answering -->
+      <div class="dialog-box" id="dialogBox"></div>
 
       <div class="answers" id="answersContainer"></div>
 
@@ -78,145 +99,186 @@
 </div>
 
 <script>
-  if (!sessionStorage.getItem("householdId")) {
-    window.location.href = "index.html";
-  }
+  if (!sessionStorage.getItem("householdId")) window.location.href = "index.html";
 
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwSxqyTvI2zFYyta8rZTvzchQx0I6oRDtbtVnr-eSIq3Zww2j1f8R4yg1Ipj3TCwrTkCQ/exec";
-
   const householdId = sessionStorage.getItem("householdId");
-  const quizTaken = sessionStorage.getItem("quizTaken") === "true";
 
-  // ============================================================
-  // QUIZ QUESTIONS
-  // Format:
-  // {
-  //   question: "Question text",
-  //   image: "filename.jpg",
-  //   answers: ["A", "B", "C", "D"],
-  //   correct: 0                        <- index of correct answer
-  // }
-  // ============================================================
   const questions = [
     {
-      question: "What year did Abby and Zac first meet?",
+      question: "What year did we first meet?",
       image: "q1.jpg",
-      answers: ["2020", "2019", "2018", "2021"],
-      correct: 1
+      answers: ["2020", "2018", "2021", "2019"],
+      correct: 3,
+      dialog: "Met in 2019 but didn't start dating until 2020"
     },
     {
       question: "Who made the first move?",
       image: "q2.jpg",
       answers: ["Zac", "Abby"],
-      correct: 1
+      correct: 1,
+      dialog: null
     },
     {
       question: "How was the first move made?",
       image: "q3.jpg",
-      answers: ["Hinge", "Text Message", "Instagram DM", "In Person"],
-      correct: 2
+      answers: ["Text Message", "In Person", "Instagram DM", "Hinge"],
+      correct: 2,
+      dialog: "Instagram story reply to be exact"
     },
     {
       question: "Who said \"I love you\" first?",
       image: "q4.jpg",
       answers: ["Abby", "Zac"],
-      correct: 1
+      correct: 1,
+      dialog: "She didn't say it back at first!"
     },
     {
       question: "On their third date, Zac invited Abby over to make dinner. What did he make?",
       image: "q5.jpg",
-      answers: ["Tacos", "Pizza", "Steak", "Spaghetti"],
-      correct: 1
+      answers: ["Steak", "Spaghetti", "Pizza", "Tacos"],
+      correct: 2,
+      dialog: "The pizza was a disaster."
     },
     {
       question: "Who is the better cook?",
       image: "q6.jpg",
       answers: ["Zac", "Abby"],
-      correct: 1
-    },
-    {
-      question: "Where did Zac go to college?",
-      image: "q7.jpg",
-      answers: ["University of Missouri", "UMSL", "Missouri S&T", "UNC Charlotte"],
-      correct: 2
-    },
-    {
-      question: "Where did Abby go to college?",
-      image: "q8.jpg",
-      answers: ["UNC Chapel Hill", "NC State University", "App State", "East Carolina University"],
-      correct: 3
-    },
-    {
-      question: "How many siblings does Zac have?",
-      image: "q9.jpg",
-      answers: ["1", "2", "3", "0"],
-      correct: 3
-    },
-    {
-      question: "How many siblings does Abby have?",
-      image: "q10.jpg",
-      answers: ["0", "3", "2", "1"],
-      correct: 2
-    },
-    {
-      question: "In what state was Zac born?",
-      image: "q11.jpg",
-      answers: ["Missouri", "Arkansas", "Illinois", "Tennessee"],
-      correct: 3
+      correct: 1,
+      dialog: "The previous question should have made this clear."
     },
     {
       question: "In what state was Abby born?",
-      image: "q12.jpg",
-      answers: ["Virginia", "North Carolina", "Missouri", "New Jersey"],
-      correct: 3
+      image: "q7.jpg",
+      answers: ["Missouri", "Virginia", "New Jersey", "North Carolina"],
+      correct: 2,
+      dialog: "New Brunswick, NJ"
     },
     {
-      question: "What is Zac's favorite movie series?",
-      image: "q13.jpg",
-      answers: ["Harry Potter", "Star Wars", "Transformers", "Avengers"],
-      correct: 1
+      question: "How many siblings does Abby have?",
+      image: "q8.jpg",
+      answers: ["2", "3", "1", "0"],
+      correct: 0,
+      dialog: "Middle child between Emma and Steven"
+    },
+    {
+      question: "Where did Abby go to college?",
+      image: "q9.jpg",
+      answers: ["East Carolina University", "UNC Chapel Hill", "App State", "NC State University"],
+      correct: 0,
+      dialog: "Go Pirates!"
+    },
+    {
+      question: "What is Abby's career path?",
+      image: "q10.jpg",
+      answers: ["3rd Grade Teacher", "Registered Nurse", "Certified Public Accountant", "Speech-Language Pathologist"],
+      correct: 3,
+      dialog: null
     },
     {
       question: "What sport did Abby play in high school?",
-      image: "q14.jpg",
-      answers: ["Softball", "Quiz Bowl", "Track", "Soccer"],
-      correct: 3
+      image: "q11.jpg",
+      answers: ["Quiz Bowl", "Soccer", "Softball", "Track"],
+      correct: 1,
+      dialog: "Go Cardinals!"
     },
     {
-      question: "Zac moved to NC to pursue a career in racing. What was the car number of the NASCAR team that gave him his break?",
+      question: "In what state was Zac born?",
+      image: "q12.jpg",
+      answers: ["Illinois", "Tennessee", "Arkansas", "Missouri"],
+      correct: 1,
+      dialog: "Vanderbilt University in Nashville, TN"
+    },
+    {
+      question: "How many direct aunts and uncles does Zac have? (Brown, Huckstep, & Pugh)",
+      image: "q13.jpg",
+      answers: ["14", "21", "17", "11"],
+      correct: 1,
+      dialog: "No such thing as a small wedding"
+    },
+    {
+      question: "Where did Zac go to college?",
+      image: "q14.jpg",
+      answers: ["Missouri S&T", "Missouri State University", "University of Missouri", "UNC Charlotte"],
+      correct: 0,
+      dialog: "B.S. Mechanical Engineering"
+    },
+    {
+      question: "Zac moved to NC to pursue a career in racing. What was the car number of the NASCAR team that gave him his big break?",
       image: "q15.jpg",
-      answers: ["5", "48", "9", "24"],
-      correct: 3
+      answers: ["9", "5", "91", "24"],
+      correct: 3,
+      dialog: "This big break eventually led him to Abby!"
+    },
+    {
+      question: "Zac's favorite movie series?",
+      image: "q16.jpg",
+      answers: ["Avengers", "Transformers", "Fast and Furious", "Star Wars"],
+      correct: 3,
+      dialog: "\"Do. Or do not. There is no try.\""
     },
     {
       question: "In which state was this picture taken?",
-      image: "q16.jpg",
-      answers: ["Utah", "Colorado", "Trick question. Switzerland", "California"],
-      correct: 3
+      image: "q17.jpg",
+      answers: ["California", "Utah", "Trick question. Switzerland", "Colorado"],
+      correct: 0,
+      dialog: "Yosemite! Hiked almost 21 miles with a mile of elevation gain up to 10,000ft. Took 14 hours. If our relationship could withstand this then we should be set!"
     },
     {
       question: "What was the nickname of Abby's first car?",
-      image: "q17.jpg",
-      answers: ["\"Baby\"", "\"Bertha\"", "\"Beulah\"", "\"Bonnie\""],
-      correct: 2
+      image: "q18.jpg",
+      answers: ["\"Baby\"", "\"Beulah\"", "\"Bertha\"", "\"Bonnie\""],
+      correct: 1,
+      dialog: "First vehicle was a Ranger. First car was a White Buick Regal named Beulah."
+    },
+    {
+      question: "Who's the bigger \"cat person\" of the relationship?",
+      image: "q19.jpg",
+      answers: ["Abby", "Zac"],
+      correct: 1,
+      dialog: "\"Zac's busy petting the cat instead of socializing\" - Abby, many times"
+    },
+    {
+      question: "Zac had a gray cat throughout his childhood who lived to be 18 years old. What was his name?",
+      image: "q20.jpg",
+      answers: ["Puddytat", "Pounce", "Henry", "Charlie"],
+      correct: 1,
+      dialog: null
     },
     {
       question: "In which state was this picture taken?",
-      image: "q18.jpg",
-      answers: ["California", "Utah", "Colorado", "Trick question. Switzerland"],
-      correct: 3
+      image: "q21.jpg",
+      answers: ["Colorado", "Utah", "Trick question. Switzerland", "California"],
+      correct: 2,
+      dialog: "Mount Pilatus near Lucerne, Switzerland"
     },
     {
       question: "Who is more extroverted?",
-      image: "q19.jpg",
-      answers: ["Zac", "Abby"],
-      correct: 1
+      image: "q22.jpg",
+      answers: ["Abby", "Zac"],
+      correct: 0,
+      dialog: "200wpm vs 5wpm"
     },
     {
-      question: "It's date night! What type of restaurant are we most likely to go to?",
-      image: "q20.jpg",
-      answers: ["BBQ", "Tacos", "Indian", "Italian"],
-      correct: 3
+      question: "Who is more adventurous?",
+      image: "q23.jpg",
+      answers: ["Zac", "Abby"],
+      correct: 0,
+      dialog: "Abby's \"comfort zone\" has been vacated many times"
+    },
+    {
+      question: "It's date night! What type of restaurant are we probably going to?",
+      image: "q24.jpg",
+      answers: ["Tacos", "BBQ", "Italian", "Indian"],
+      correct: 2,
+      dialog: "Our relationship is grounded in carbs. Indian is a close 2nd."
+    },
+    {
+      question: "Which is NOT a common interest between us?",
+      image: "q25.jpg",
+      answers: ["Binge watching NCIS", "Coffee shops", "Good books", "Farmers markets"],
+      correct: 2,
+      dialog: "Abby reads while Zac games"
     }
   ];
 
@@ -226,7 +288,6 @@
   let answered = false;
   let savedAnswers = [];
 
-  // Init — check quiz status from sessionStorage only
   function init() {
     const quizStatus = sessionStorage.getItem("quizStatus") || "Not Started";
     const savedAnswersRaw = sessionStorage.getItem("quizAnswers");
@@ -238,15 +299,11 @@
     }
 
     if (quizStatus === "In Progress" && savedAnswers.length > 0) {
-      // Resume from where they left off
       currentQ = savedAnswers.length;
-      score = savedAnswers.reduce((acc, answerIdx, qIdx) => {
-        return acc + (answerIdx === questions[qIdx].correct ? 1 : 0);
-      }, 0);
+      score = savedAnswers.reduce((acc, idx, qi) => acc + (idx === questions[qi].correct ? 1 : 0), 0);
       document.getElementById("introScreen").classList.add("hidden");
       document.getElementById("quizScreen").classList.remove("hidden");
       renderQuestion();
-      return;
     }
   }
 
@@ -254,19 +311,17 @@
     document.getElementById("introScreen").classList.add("hidden");
     document.getElementById("alreadyTakenScreen").classList.remove("hidden");
     const savedScore = sessionStorage.getItem("quizScore");
-    document.getElementById("alreadyScore").textContent = savedScore !== null
+    document.getElementById("alreadyScore").textContent = savedScore
       ? `Your score: ${savedScore} / ${questions.length}`
       : "Check the leaderboard to see how you ranked!";
   }
 
   function startQuiz() {
-    // Mark as In Progress in sessionStorage only — no sheet call
     sessionStorage.setItem("quizStatus", "In Progress");
     sessionStorage.setItem("quizAnswers", JSON.stringify([]));
     savedAnswers = [];
     currentQ = 0;
     score = 0;
-
     document.getElementById("introScreen").classList.add("hidden");
     document.getElementById("quizScreen").classList.remove("hidden");
     renderQuestion();
@@ -276,12 +331,17 @@
     const q = questions[currentQ];
     answered = false;
 
-    const pct = (currentQ / questions.length) * 100;
-    document.getElementById("progressBar").style.width = pct + "%";
+    document.getElementById("progressBar").style.width = (currentQ / questions.length * 100) + "%";
     document.getElementById("questionNum").textContent = `Question ${currentQ + 1} of ${questions.length}`;
     document.getElementById("questionText").textContent = q.question;
     document.getElementById("nextBtn").classList.add("hidden");
 
+    // Hide dialog
+    const dialogBox = document.getElementById("dialogBox");
+    dialogBox.style.display = "none";
+    dialogBox.textContent = "";
+
+    // Image
     const img = document.getElementById("questionImg");
     if (q.image) {
       img.src = q.image;
@@ -291,6 +351,7 @@
       img.classList.add("hidden");
     }
 
+    // Answers
     const container = document.getElementById("answersContainer");
     container.innerHTML = "";
     q.answers.forEach((answer, i) => {
@@ -319,7 +380,14 @@
 
     buttons.forEach(b => b.style.pointerEvents = "none");
 
-    // Save to sessionStorage only — no network call
+    // Show dialog if exists
+    if (q.dialog) {
+      const dialogBox = document.getElementById("dialogBox");
+      dialogBox.textContent = q.dialog;
+      dialogBox.style.display = "block";
+    }
+
+    // Save to sessionStorage
     savedAnswers[currentQ] = index;
     sessionStorage.setItem("quizAnswers", JSON.stringify(savedAnswers));
 
@@ -330,26 +398,16 @@
 
   function nextQuestion() {
     currentQ++;
-    if (currentQ >= questions.length) {
-      finishQuiz();
-    } else {
-      renderQuestion();
-    }
+    currentQ >= questions.length ? finishQuiz() : renderQuestion();
   }
 
   async function finishQuiz() {
     document.getElementById("quizScreen").classList.add("hidden");
 
-    // One single write to the sheet at the end
     try {
       await fetch(SCRIPT_URL, {
         method: "POST",
-        body: JSON.stringify({
-          action: "submitQuiz",
-          householdId,
-          score,
-          answers: savedAnswers.join(",")
-        })
+        body: JSON.stringify({ action: "submitQuiz", householdId, score, answers: savedAnswers.join(",") })
       });
       sessionStorage.setItem("quizStatus", "Complete");
       sessionStorage.setItem("quizScore", score);
@@ -360,11 +418,11 @@
 
     const pct = Math.round((score / questions.length) * 100);
     let message = "";
-    if (pct === 100) message = "Perfect score! You really know us! 🎉";
-    else if (pct >= 80) message = "Impressive! You clearly pay attention.";
-    else if (pct >= 60) message = "Not bad! You know a thing or two.";
-    else if (pct >= 40) message = "Room to grow! Come to the wedding to learn more.";
-    else message = "Maybe get to know us a little better! 😄";
+    if (pct === 100)     message = "Perfect score! You really know us! 🎉";
+    else if (pct >= 80)  message = "Impressive! You clearly pay attention.";
+    else if (pct >= 60)  message = "Not bad! You know a thing or two.";
+    else if (pct >= 40)  message = "Room to grow! Come to the wedding to learn more.";
+    else                 message = "Maybe get to know us a little better! 😄";
 
     document.getElementById("finalScore").textContent = `${score} / ${questions.length}`;
     document.getElementById("scoreMessage").textContent = message;
