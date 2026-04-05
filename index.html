@@ -105,6 +105,13 @@
         return;
       }
 
+      // Admin bypass
+      if (data.status === "admin") {
+        sessionStorage.setItem("adminMode", "true");
+        window.location.href = "admin.html";
+        return;
+      }
+
       // Found - save session and redirect
       saveSession(data);
       window.location.href = "home.html";

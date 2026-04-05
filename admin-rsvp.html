@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light only" />
+  <title>RSVP Results</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .stat-box {
+      background: var(--card-bg);
+      border: 1px solid var(--light-gray);
+      border-radius: 4px;
+      padding: 16px 12px;
+      text-align: center;
+    }
+    .stat-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.2rem;
+      font-weight: 400;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .stat-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #aaaaaa;
+    }
+    .stat-num.yes  { color: #7ecba1; }
+    .stat-num.no   { color: #e87070; }
+    .stat-num.pending { color: #e8d5a3; }
+
+    .chart-wrap {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 28px;
+    }
+    canvas { max-width: 220px; }
+
+    .tab-bar {
+      display: flex;
+      gap: 0;
+      margin-bottom: 20px;
+      border: 1px solid var(--light-gray);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 12px;
+      background: transparent;
+      border: none;
+      color: #aaaaaa;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-right: 1px solid var(--light-gray);
+      transition: all 0.2s;
+    }
+    .tab-btn:last-child { border-right: none; }
+    .tab-btn.active {
+      background: var(--card-bg);
+      color: #ffffff;
+    }
+
+    .guest-list { margin-bottom: 8px; }
+    .guest-item {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--light-gray);
+      font-size: 0.88rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .guest-item:last-child { border-bottom: none; }
+    .guest-household {
+      font-size: 0.72rem;
+      color: #888;
+      margin-top: 2px;
+    }
+    .badge {
+      font-size: 0.65rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 2px;
+      font-weight: 500;
+    }
+    .badge-yes     { background: #1a3d2e; color: #7ecba1; }
+    .badge-no      { background: #3d1a1a; color: #e87070; }
+    .badge-pending { background: #2a2a1a; color: #e8d5a3; }
+
+    .section-header {
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gold);
+      padding: 10px 16px 6px;
+      border-bottom: 1px solid var(--light-gray);
+      font-family: 'Montserrat', sans-serif;
+    }
+  </style>
+</head>
+<body style="background-color:#1a1a1a !important; color:#ffffff !important;">
+
+<div class="page">
+  <div class="page-header">
+    <a href="admin.html" class="back-btn">&#8592; Back</a>
+    <h1>RSVP Results</h1>
+    <p class="subtitle" id="lastUpdated">Loading...</p>
+  </div>
+
+  <div class="content">
+
+    <!-- Loading -->
+    <div id="loadingState" style="text-align:center; padding:48px 0;">
+      <div class="spinner"></div>
+      <p style="color:#cccccc; font-size:0.85rem; margin-top:16px;">Fetching responses...</p>
+    </div>
+
+    <div id="mainContent" class="hidden">
+
+      <!-- Stat boxes -->
+      <div class="stat-grid">
+        <div class="stat-box">
+          <div class="stat-num yes" id="countYes">—</div>
+          <div class="stat-label">Attending</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num no" id="countNo">—</div>
+          <div class="stat-label">Not Attending</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num pending" id="countPending">—</div>
+          <div class="stat-label">No Response</div>
+        </div>
+      </div>
+
+      <!-- Pie chart -->
+      <div class="chart-wrap">
+        <canvas id="rsvpChart" width="220" height="220"></canvas>
+      </div>
+
+      <!-- Household vs Individual toggle -->
+      <div class="tab-bar">
+        <button class="tab-btn active" id="tabIndividual" onclick="showTab('individual')">By Individual</button>
+        <button class="tab-btn" id="tabHousehold" onclick="showTab('household')">By Household</button>
+      </div>
+
+      <!-- Individual view -->
+      <div id="viewIndividual">
+        <div class="card" style="padding:0; overflow:hidden;" id="listIndividual"></div>
+      </div>
+
+      <!-- Household view -->
+      <div id="viewHousehold" class="hidden">
+        <div class="card" style="padding:0; overflow:hidden;" id="listHousehold"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  if (sessionStorage.getItem("adminMode") !== "true") window.location.href = "index.html";
+
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwSxqyTvI2zFYyta8rZTvzchQx0I6oRDtbtVnr-eSIq3Zww2j1f8R4yg1Ipj3TCwrTkCQ/exec";
+
+  let allData = [];
+  let currentTab = "individual";
+
+  async function load() {
+    try {
+      const res = await fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({ action: "adminGetRSVP" })
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error();
+      allData = data.guests;
+      document.getElementById("lastUpdated").textContent =
+        `${allData.length} guests · updated just now`;
+      render();
+      document.getElementById("loadingState").classList.add("hidden");
+      document.getElementById("mainContent").classList.remove("hidden");
+    } catch (e) {
+      document.getElementById("loadingState").innerHTML =
+        '<p style="color:#e87070;">Failed to load data. Check Apps Script deployment.</p>';
+    }
+  }
+
+  function render() {
+    const yes     = allData.filter(g => g.rsvpStatus === "Will Attend");
+    const no      = allData.filter(g => g.rsvpStatus === "Will Not Attend");
+    const pending = allData.filter(g => g.rsvpStatus !== "Will Attend" && g.rsvpStatus !== "Will Not Attend");
+
+    document.getElementById("countYes").textContent     = yes.length;
+    document.getElementById("countNo").textContent      = no.length;
+    document.getElementById("countPending").textContent = pending.length;
+
+    drawChart(yes.length, no.length, pending.length);
+    renderIndividual(yes, no, pending);
+    renderHousehold();
+  }
+
+  function drawChart(yes, no, pending) {
+    const canvas = document.getElementById("rsvpChart");
+    const ctx = canvas.getContext("2d");
+    const total = yes + no + pending;
+    if (total === 0) return;
+
+    const cx = 110, cy = 110, r = 90;
+    const slices = [
+      { value: yes,     color: "#2d6a4f" },
+      { value: no,      color: "#c0392b" },
+      { value: pending, color: "#8a7a3a" },
+    ].filter(s => s.value > 0);
+
+    let startAngle = -Math.PI / 2;
+    slices.forEach(s => {
+      const sweep = (s.value / total) * 2 * Math.PI;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, r, startAngle, startAngle + sweep);
+      ctx.closePath();
+      ctx.fillStyle = s.color;
+      ctx.fill();
+      startAngle += sweep;
+    });
+
+    // Center hole (donut)
+    ctx.beginPath();
+    ctx.arc(cx, cy, 48, 0, 2 * Math.PI);
+    ctx.fillStyle = "#1a1a1a";
+    ctx.fill();
+
+    // Center text
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 28px 'Cormorant Garamond', serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(total, cx, cy - 8);
+    ctx.font = "11px Montserrat, sans-serif";
+    ctx.fillStyle = "#aaaaaa";
+    ctx.fillText("TOTAL", cx, cy + 14);
+  }
+
+  function badgeHtml(status) {
+    if (status === "Will Attend")     return '<span class="badge badge-yes">Attending</span>';
+    if (status === "Will Not Attend") return '<span class="badge badge-no">Not Attending</span>';
+    return '<span class="badge badge-pending">No Response</span>';
+  }
+
+  function renderIndividual(yes, no, pending) {
+    const container = document.getElementById("listIndividual");
+    container.innerHTML = "";
+    const sections = [
+      { label: `Attending (${yes.length})`,     guests: yes },
+      { label: `Not Attending (${no.length})`,  guests: no },
+      { label: `No Response (${pending.length})`, guests: pending },
+    ];
+    sections.forEach(s => {
+      if (s.guests.length === 0) return;
+      const header = document.createElement("div");
+      header.className = "section-header";
+      header.textContent = s.label;
+      container.appendChild(header);
+      s.guests.forEach(g => {
+        const row = document.createElement("div");
+        row.className = "guest-item";
+        row.innerHTML = `
+          <div>
+            <div>${g.fullName}</div>
+            <div class="guest-household">${g.displayName}</div>
+          </div>
+          ${badgeHtml(g.rsvpStatus)}
+        `;
+        container.appendChild(row);
+      });
+    });
+  }
+
+  function renderHousehold() {
+    // Group by household
+    const households = {};
+    allData.forEach(g => {
+      if (!households[g.householdId]) {
+        households[g.householdId] = { displayName: g.displayName, members: [] };
+      }
+      households[g.householdId].members.push(g);
+    });
+
+    // Sort: fully responded yes first, then mixed, then no, then pending
+    const sorted = Object.values(households).sort((a, b) => {
+      const statusScore = h => {
+        const statuses = h.members.map(m => m.rsvpStatus);
+        if (statuses.every(s => s === "Will Attend")) return 0;
+        if (statuses.every(s => s === "Will Not Attend")) return 2;
+        if (statuses.some(s => s !== "Will Attend" && s !== "Will Not Attend")) return 3;
+        return 1;
+      };
+      return statusScore(a) - statusScore(b);
+    });
+
+    const container = document.getElementById("listHousehold");
+    container.innerHTML = "";
+
+    sorted.forEach(h => {
+      const allYes     = h.members.every(m => m.rsvpStatus === "Will Attend");
+      const allNo      = h.members.every(m => m.rsvpStatus === "Will Not Attend");
+      const anyPending = h.members.some(m => m.rsvpStatus !== "Will Attend" && m.rsvpStatus !== "Will Not Attend");
+      const status = allYes ? "Will Attend" : allNo ? "Will Not Attend" : anyPending ? "Pending" : "Mixed";
+
+      const row = document.createElement("div");
+      row.className = "guest-item";
+      row.style.flexDirection = "column";
+      row.style.alignItems = "flex-start";
+      row.style.gap = "8px";
+      row.innerHTML = `
+        <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
+          <div style="font-family:'Cormorant Garamond',serif; font-size:1.05rem;">${h.displayName}</div>
+          ${badgeHtml(status)}
+        </div>
+        <div style="display:flex; flex-wrap:wrap; gap:6px;">
+          ${h.members.map(m => `
+            <span style="font-size:0.78rem; color:#aaa; background:#2a2a2a; padding:3px 8px; border-radius:2px;">
+              ${m.fullName.split(" ")[0]} ${badgeHtml(m.rsvpStatus)}
+            </span>
+          `).join("")}
+        </div>
+      `;
+      container.appendChild(row);
+    });
+  }
+
+  function showTab(tab) {
+    currentTab = tab;
+    document.getElementById("viewIndividual").classList.toggle("hidden", tab !== "individual");
+    document.getElementById("viewHousehold").classList.toggle("hidden", tab !== "household");
+    document.getElementById("tabIndividual").classList.toggle("active", tab === "individual");
+    document.getElementById("tabHousehold").classList.toggle("active", tab === "household");
+  }
+
+  load();
+</script>
+
+</body>
+</html>

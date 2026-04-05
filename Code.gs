@@ -9,6 +9,8 @@ function doPost(e) {
     if (action === "lookupGuest")     return lookupGuest(data.name, data.forcedHouseholdId);
     if (action === "submitRSVP")      return submitRSVP(data);
     if (action === "submitQuiz")      return submitQuiz(data.householdId, data.score, data.answers);
+    if (action === "adminGetRSVP")    return adminGetRSVP();
+    if (action === "adminGetQuiz")    return adminGetQuiz();
     if (action === "getLeaderboard")  return getLeaderboard();
 
     return response({ success: false, error: "Unknown action" });
@@ -45,6 +47,11 @@ function normalizeName(name) {
 }
 
 function lookupGuest(inputName, forcedHouseholdId) {
+  // Admin bypass
+  if (String(inputName).trim().toLowerCase() === "wedding admin") {
+    return response({ success: true, status: "admin" });
+  }
+
   const normalized = normalizeName(inputName);
   const data = getAllData();
 
@@ -175,6 +182,41 @@ function getLeaderboard() {
 
   leaderboard.sort((a, b) => b.score - a.score);
   return response({ success: true, leaderboard });
+}
+
+
+function adminGetRSVP() {
+  const data = getAllData();
+  const guests = data.map(row => ({
+    householdId: row["Household ID"],
+    displayName: row["Display Name"],
+    fullName:    row["Full Name"],
+    rsvpStatus:  row["RSVP Status"] || "Pending"
+  }));
+  return response({ success: true, guests });
+}
+
+function adminGetQuiz() {
+  const data = getAllData();
+  const TOTAL_QUESTIONS = 21;
+
+  // Deduplicate by household — take first row per household
+  const seen = new Set();
+  const households = [];
+  data.forEach(row => {
+    const id = String(row["Household ID"]);
+    if (!seen.has(id)) {
+      seen.add(id);
+      households.push({
+        householdId: id,
+        displayName: row["Display Name"],
+        quizStatus:  row["Quiz Status"] || "Not Started",
+        quizScore:   Number(row["Quiz Score"]) || 0
+      });
+    }
+  });
+
+  return response({ success: true, households, totalQuestions: TOTAL_QUESTIONS });
 }
 
 function response(data) {

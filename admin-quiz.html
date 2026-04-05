@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light only" />
+  <title>Quiz Results</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .stat-box {
+      background: var(--card-bg);
+      border: 1px solid var(--light-gray);
+      border-radius: 4px;
+      padding: 16px 12px;
+      text-align: center;
+    }
+    .stat-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.2rem;
+      font-weight: 400;
+      line-height: 1;
+      margin-bottom: 6px;
+      color: var(--gold-light);
+    }
+    .stat-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #aaaaaa;
+    }
+    .leaderboard-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--light-gray);
+    }
+    .leaderboard-item:last-child { border-bottom: none; }
+    .score-bar-wrap {
+      flex: 1;
+    }
+    .score-bar-bg {
+      height: 4px;
+      background: var(--light-gray);
+      border-radius: 2px;
+      margin-top: 6px;
+      overflow: hidden;
+    }
+    .score-bar-fill {
+      height: 100%;
+      background: var(--gold);
+      border-radius: 2px;
+      transition: width 0.5s ease;
+    }
+    .incomplete-item {
+      padding: 10px 20px;
+      border-bottom: 1px solid var(--light-gray);
+      font-size: 0.85rem;
+      color: #888;
+      display: flex;
+      justify-content: space-between;
+    }
+    .incomplete-item:last-child { border-bottom: none; }
+    .section-header {
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gold);
+      padding: 10px 16px 6px;
+      border-bottom: 1px solid var(--light-gray);
+      font-family: 'Montserrat', sans-serif;
+    }
+  </style>
+</head>
+<body style="background-color:#1a1a1a !important; color:#ffffff !important;">
+
+<div class="page">
+  <div class="page-header">
+    <a href="admin.html" class="back-btn">&#8592; Back</a>
+    <h1>Quiz Results</h1>
+    <p class="subtitle" id="subtitle">Loading...</p>
+  </div>
+
+  <div class="content">
+
+    <div id="loadingState" style="text-align:center; padding:48px 0;">
+      <div class="spinner"></div>
+      <p style="color:#cccccc; font-size:0.85rem; margin-top:16px;">Fetching results...</p>
+    </div>
+
+    <div id="mainContent" class="hidden">
+
+      <!-- Stats -->
+      <div class="stat-grid">
+        <div class="stat-box">
+          <div class="stat-num" id="statCompleted">—</div>
+          <div class="stat-label">Completed</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" id="statAvg">—</div>
+          <div class="stat-label">Avg Score</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" id="statTop">—</div>
+          <div class="stat-label">Top Score</div>
+        </div>
+      </div>
+
+      <!-- Leaderboard -->
+      <div class="card" style="padding:0; overflow:hidden; margin-bottom:24px;">
+        <div class="section-header">Completed — Ranked</div>
+        <div id="leaderboardList"></div>
+      </div>
+
+      <!-- Not yet taken -->
+      <div class="card" style="padding:0; overflow:hidden;">
+        <div class="section-header" id="notTakenHeader">Not Yet Taken</div>
+        <div id="notTakenList"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  if (sessionStorage.getItem("adminMode") !== "true") window.location.href = "index.html";
+
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwSxqyTvI2zFYyta8rZTvzchQx0I6oRDtbtVnr-eSIq3Zww2j1f8R4yg1Ipj3TCwrTkCQ/exec";
+
+  async function load() {
+    try {
+      const res = await fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({ action: "adminGetQuiz" })
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error();
+      render(data.households, data.totalQuestions);
+      document.getElementById("loadingState").classList.add("hidden");
+      document.getElementById("mainContent").classList.remove("hidden");
+    } catch (e) {
+      document.getElementById("loadingState").innerHTML =
+        '<p style="color:#e87070;">Failed to load. Check Apps Script deployment.</p>';
+    }
+  }
+
+  function render(households, totalQ) {
+    const completed = households.filter(h => h.quizStatus === "Complete");
+    const notTaken  = households.filter(h => h.quizStatus !== "Complete");
+
+    completed.sort((a, b) => b.quizScore - a.quizScore);
+
+    const avg = completed.length
+      ? (completed.reduce((s, h) => s + h.quizScore, 0) / completed.length).toFixed(1)
+      : "—";
+    const top = completed.length ? completed[0].quizScore : "—";
+
+    document.getElementById("statCompleted").textContent = completed.length;
+    document.getElementById("statAvg").textContent = avg !== "—" ? `${avg}` : "—";
+    document.getElementById("statTop").textContent = top !== "—" ? `${top}/${totalQ}` : "—";
+    document.getElementById("subtitle").textContent =
+      `${completed.length} of ${households.length} households completed`;
+
+    // Leaderboard
+    const list = document.getElementById("leaderboardList");
+    list.innerHTML = "";
+    if (completed.length === 0) {
+      list.innerHTML = '<div style="padding:16px; color:#888; font-size:0.85rem;">No completions yet.</div>';
+    }
+    completed.forEach((h, i) => {
+      const rank = i + 1;
+      const symbol = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : rank;
+      const pct = Math.round((h.quizScore / totalQ) * 100);
+      const row = document.createElement("div");
+      row.className = "leaderboard-item";
+      row.innerHTML = `
+        <div style="font-family:'Cormorant Garamond',serif; font-size:1.4rem; width:28px; text-align:center; color:var(--gold); flex-shrink:0;">${symbol}</div>
+        <div class="score-bar-wrap">
+          <div style="display:flex; justify-content:space-between; align-items:baseline;">
+            <span style="font-family:'Cormorant Garamond',serif; font-size:1.05rem;">${h.displayName}</span>
+            <span style="font-size:0.85rem; color:#aaa;">${h.quizScore}/${totalQ}</span>
+          </div>
+          <div class="score-bar-bg">
+            <div class="score-bar-fill" style="width:${pct}%"></div>
+          </div>
+        </div>
+      `;
+      list.appendChild(row);
+    });
+
+    // Not taken
+    document.getElementById("notTakenHeader").textContent =
+      `Not Yet Taken (${notTaken.length})`;
+    const ntList = document.getElementById("notTakenList");
+    ntList.innerHTML = "";
+    if (notTaken.length === 0) {
+      ntList.innerHTML = '<div style="padding:16px; color:#888; font-size:0.85rem;">Everyone has taken the quiz! 🎉</div>';
+    }
+    notTaken.forEach(h => {
+      const row = document.createElement("div");
+      row.className = "incomplete-item";
+      const statusLabel = h.quizStatus === "In Progress" ? "In Progress" : "Not Started";
+      const statusColor = h.quizStatus === "In Progress" ? "#e8d5a3" : "#888";
+      row.innerHTML = `
+        <span>${h.displayName}</span>
+        <span style="color:${statusColor}; font-size:0.72rem; letter-spacing:0.08em; text-transform:uppercase;">${statusLabel}</span>
+      `;
+      ntList.appendChild(row);
+    });
+  }
+
+  load();
+</script>
+
+</body>
+</html>
