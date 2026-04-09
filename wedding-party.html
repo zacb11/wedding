@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light only" />
+  <title>Wedding Party</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .party-member {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--light-gray);
+    }
+    .party-member:last-child { border-bottom: none; }
+    .party-member-photo {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex-shrink: 0;
+      background: var(--light-gray);
+    }
+    .party-member-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.15rem;
+      color: var(--white);
+      margin-bottom: 2px;
+    }
+    .party-member-role {
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+    .party-member-note {
+      font-size: 0.82rem;
+      color: #aaaaaa;
+      margin-top: 4px;
+      line-height: 1.5;
+    }
+    .party-section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.6rem;
+      font-style: italic;
+      color: var(--gold-light);
+      margin-bottom: 4px;
+    }
+  </style>
+</head>
+<body style="background-color:#1a1a1a !important; color:#ffffff !important;">
+
+<div class="page">
+
+  <div class="page-header">
+    <a href="home.html" class="back-btn">&#8592; Back</a>
+    <h1>Wedding Party</h1>
+    <p class="subtitle">The people standing beside us</p>
+  </div>
+
+  <div class="content">
+
+    <!-- Bride's Side -->
+    <div class="about-section">
+      <p class="party-section-title">Bridesmaids</p>
+    </div>
+
+    <div class="card" style="padding: 0 24px;">
+      <div class="party-member">
+        <img src="bridesmaid-emma.jpg" class="party-member-photo" onerror="this.style.display='none'" />
+        <div>
+          <div class="party-member-name">Emma Slate</div>
+          <div class="party-member-role">Maid of Honor</div>
+        </div>
+      </div>
+      <div class="party-member">
+        <img src="bridesmaid-haley.jpg" class="party-member-photo" onerror="this.style.display='none'" />
+        <div>
+          <div class="party-member-name">Haley Cave</div>
+          <div class="party-member-role">Bridesmaid</div>
+        </div>
+      </div>
+      <div class="party-member">
+        <img src="bridesmaid-alex.jpg" class="party-member-photo" onerror="this.style.display='none'" />
+        <div>
+          <div class="party-member-name">Alex Bolster</div>
+          <div class="party-member-role">Bridesmaid</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"><span>&#10038;</span></div>
+
+    <!-- Groom's Side -->
+    <div class="about-section">
+      <p class="party-section-title">Groomsmen</p>
+    </div>
+
+    <!-- Best Man Challenge Banner -->
+    <img src="bmc-banner.jpg" alt="Best Man Challenge" style="width:100%; border-radius:4px; margin-bottom:20px;" onerror="this.style.display='none'" />
+
+    <div class="card" style="padding: 0 24px;">
+
+      <!-- Mystery Best Man -->
+      <div class="party-member">
+        <div style="width:64px; height:64px; border-radius:50%; background:var(--light-gray); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:1.8rem;">?</div>
+        <div>
+          <div class="party-member-name">To Be Determined</div>
+          <div class="party-member-role" style="color:var(--gold);">Best Man</div>
+          <div class="party-member-note" style="margin-top:6px;">I couldn't decide who my best man should be, so I am hosting a competition between my three groomsmen to determine who the best man really is. Come back at the end of June to see the results.</div>
+        </div>
+      </div>
+
+      <!-- Groomsmen -->
+      <div class="party-member">
+        <img src="groomsman-ryan-dugan.jpg" class="party-member-photo" onerror="this.style.display='none'" />
+        <div>
+          <div class="party-member-name">Ryan Dugan</div>
+          <div class="party-member-role">Groomsman</div>
+        </div>
+      </div>
+      <div class="party-member">
+        <img src="groomsman-ryan-bencomo.jpg" class="party-member-photo" onerror="this.style.display='none'" />
+        <div>
+          <div class="party-member-name">Ryan Bencomo</div>
+          <div class="party-member-role">Groomsman</div>
+        </div>
+      </div>
+      <div class="party-member">
+        <img src="groomsman-daniel-dugan.jpg" class="party-member-photo" onerror="this.style.display='none'" />
+        <div>
+          <div class="party-member-name">Daniel Dugan</div>
+          <div class="party-member-role">Groomsman</div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<script>
+  if (!sessionStorage.getItem("householdId")) {
+    window.location.href = "index.html";
+  }
+</script>
+
+</body>
+</html>
