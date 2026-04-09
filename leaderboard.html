@@ -114,12 +114,14 @@
         myEntry = entry;
         item.style.background = "#fffdf5";
         item.style.borderLeft = "3px solid var(--gold)";
+        item.style.color = "#0a0a0a";
       }
 
+      const textColor = (entry.displayName === displayName) ? "#0a0a0a" : "";
       item.innerHTML = `
         <div class="leaderboard-rank">${rankSymbol}</div>
-        <div class="leaderboard-name">${entry.displayName}</div>
-        <div class="leaderboard-score">${entry.score} / 20</div>
+        <div class="leaderboard-name" style="color:${textColor || "var(--white)"};">${entry.displayName}</div>
+        <div class="leaderboard-score" style="color:${textColor || "var(--gray)"};">${entry.score} / 21</div>
       `;
       list.appendChild(item);
     });
@@ -129,7 +131,7 @@
       document.getElementById("myRankCard").classList.remove("hidden");
       document.getElementById("myHouseholdName").textContent = displayName;
       document.getElementById("myRankText").textContent =
-        `Ranked #${myRank} of ${leaderboard.length} · ${myEntry.score}/20`;
+        `Ranked #${myRank} of ${leaderboard.length} · ${myEntry.score}/21`;
     }
   }
 
